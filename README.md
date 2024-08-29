@@ -167,3 +167,4 @@ In `/src/main/resources/application.properties` file it is possible to change bo
 web interface url path, as well as the datasource url.
 
 line1
+line2
