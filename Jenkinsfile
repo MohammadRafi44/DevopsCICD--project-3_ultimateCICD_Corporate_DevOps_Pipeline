@@ -40,6 +40,14 @@ pipeline {
                 }
             }
         }
+
+        stage('Owasp-Dep-Check'){
+            steps {
+                    dependencyCheck additionalArguments: '--scan ./', odcInstallation: 'DC'
+                    dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+
         // stage('Trivy-FS-Scan'){
         //     steps {
         //         // sh 'trivy fs --security-checks vuln,config /var/lib/jenkins/workspace/cicd-devops-pipiline'
@@ -47,19 +55,19 @@ pipeline {
         //     }
         // }
 
-        // stage('Build'){
-        //     steps {
-        //         sh " mvn package"
-        //     }
-        // }
+        stage('Build'){
+            steps {
+                sh " mvn package -DskipTests=true"
+            }
+        }
 
-        // stage('publish-artifact'){
-        //     steps {
-        //         withMaven(globalMavenSettingsConfig: 'settings-maven', jdk: 'jdk17', maven: 'maven3', mavenSettingsConfig: '', traceability: true) {
-        //            sh 'mvn deploy'
-        //         }
-        //     }
-        // }
+        stage('publish-artifact'){
+            steps {
+                withMaven(globalMavenSettingsConfig: 'settings-maven', jdk: 'jdk17', maven: 'maven3', mavenSettingsConfig: '', traceability: true) {
+                   sh 'mvn deploy -DskipTests=true'
+                }
+            }
+        }
 
         // stage('DOCKER-BUILD'){
         //     steps {
