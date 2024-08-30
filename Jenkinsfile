@@ -55,19 +55,22 @@ pipeline {
         //     }
         // }
 
-        stage('Build'){
+        stage('Mvn-Build'){
             steps {
                 sh " mvn package -DskipTests=true"
             }
         }
 
-        // stage('publish-artifact'){
-        //     steps {
-        //         withMaven(globalMavenSettingsConfig: 'settings-maven', jdk: 'jdk17', maven: 'maven3', mavenSettingsConfig: '', traceability: true) {
-        //            sh 'mvn deploy -DskipTests=true'
-        //         }
-        //     }
-        // }
+        stage('Nexus-Publish-artifact'){
+            steps {
+                withMaven(globalMavenSettingsConfig: 'global-maven', jdk: 'jdk17', maven: 'maven3', mavenSettingsConfig: '', traceability: true) {
+                    sh 'mvn deploy -DskipTests=true'
+                }
+                // withMaven(globalMavenSettingsConfig: 'settings-maven', jdk: 'jdk17', maven: 'maven3', mavenSettingsConfig: '', traceability: true) {
+                //    sh 'mvn deploy -DskipTests=true'
+                // }
+            }
+        }
 
         // stage('DOCKER-BUILD'){
         //     steps {
