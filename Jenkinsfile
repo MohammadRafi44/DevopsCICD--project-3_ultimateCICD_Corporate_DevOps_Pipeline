@@ -66,62 +66,76 @@ pipeline {
                 withMaven(globalMavenSettingsConfig: 'global-maven', jdk: 'jdk17', maven: 'maven3', mavenSettingsConfig: '', traceability: true) {
                     sh 'mvn deploy -DskipTests=true'
                 }
-                // withMaven(globalMavenSettingsConfig: 'settings-maven', jdk: 'jdk17', maven: 'maven3', mavenSettingsConfig: '', traceability: true) {
-                //    sh 'mvn deploy -DskipTests=true'
-                // }
             }
         }
 
-        // stage('DOCKER-BUILD'){
-        //     steps {
-        //         script {
-        //             withDockerRegistry(credentialsId: 'dockerhub-cred', url: 'https://index.docker.io/v1/') {
-        //                 sh "docker build -t mohammadrafi44/taskmaster:latest ."
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Docker-Build-Image'){
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'dockerhub-cred', toolName: 'docker', url: 'https://index.docker.io/v1/') {
+                       sh "docker build -t mohammadrafi44/ekart:latest -f docker/Dockerfile ."
+                    }
+                    // withDockerRegistry(credentialsId: 'dockerhub-cred', url: 'https://index.docker.io/v1/') {
+                    //     sh "docker build -t mohammadrafi44/taskmaster:latest ."
+                    // }
+                }
+            }
+        }
 
-        // stage('Trivy-image-scan'){
-        //     steps {
-        //         sh 'trivy image --format table -o image.html mohammadrafi44/taskmaster:latest'
-        //         }
-        // }
+        stage('Trivy-image-scan'){
+            steps {
+                sh 'trivy image mohammadrafi44/ekart:latest > trivy-report.txt'
+                // sh 'trivy image --format table -o image.html mohammadrafi44/taskmaster:latest'
+                }
+        }
 
-        // stage('Docker-Publish'){
-        //     steps {
-        //         script {
-        //             withDockerRegistry(credentialsId: 'dockerhub-cred', url: 'https://index.docker.io/v1/') {
-        //                 sh "docker push mohammadrafi44/taskmaster:latest"
-        //             }
-        //         }
-        //     }
-        // }
-        // stage("Docker-Image-Cleanup"){
-        //     steps {
-        //         script {
-        //             echo 'docker images cleanup started'
-        //             sh 'docker system prune -af'
-        //             echo 'docker images cleanup finished'
-        //         }
-        //     }
-        // }
-        // stage("K8s-Deploy"){
-        //     steps {
-        //         withKubeConfig(caCertificate: '', clusterName: 'devopsshack-cluster', contextName: '', credentialsId: 'k8-token', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://41BFF322BA9DC0AC6E2B601200EBB29D.gr7.ap-south-1.eks.amazonaws.com') {
-        //             sh 'kubectl apply -f deployment-service.yml'
-        //             sleep 30 
-        //         }
-        //     }
-        // }
+        stage('Docker-Publish'){
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'dockerhub-cred', toolName: 'docker', url: 'https://index.docker.io/v1/') {
+                       sh "docker push mohammadrafi44/ekart:latest"
+                    }
+                    // withDockerRegistry(credentialsId: 'dockerhub-cred', url: 'https://index.docker.io/v1/') {
+                    //     sh "docker push mohammadrafi44/taskmaster:latest"
+                    // }
+                }
+            }
+        }
+
+        stage("Docker-Image-Cleanup"){
+            steps {
+                script {
+                    echo 'docker images cleanup started'
+                    sh 'docker system prune -af'
+                    echo 'docker images cleanup finished'
+                }
+            }
+        }
+
+        stage("K8s-Deploy"){
+            steps {
+                withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8-token', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://172.31.38.81:6443') {
+                    sh 'kubectl apply -f deploymentservice.yml -n webapps'
+                    sleep 20
+                }                
+                // withKubeConfig(caCertificate: '', clusterName: 'devopsshack-cluster', contextName: '', credentialsId: 'k8-token', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://41BFF322BA9DC0AC6E2B601200EBB29D.gr7.ap-south-1.eks.amazonaws.com') {
+                //     sh 'kubectl apply -f deployment-service.yml'
+                //     sleep 30 
+                // }
+            }
+        }
         
-        // stage("K8s-Verify-Deploy"){
-        //     steps {
-        //         withKubeConfig(caCertificate: '', clusterName: 'devopsshack-cluster', contextName: '', credentialsId: 'k8-token', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://41BFF322BA9DC0AC6E2B601200EBB29D.gr7.ap-south-1.eks.amazonaws.com') {
-        //             sh 'kubectl get pods -n webapps'
-        //             sh 'kubectl get svc -n webapps'
-        //         }
-        //     }
-        // }
+        stage("K8s-Verify-Deploy"){
+            steps {
+                withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8-token', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://172.31.38.81:6443') {
+                    sh 'kubectl get pods -n webapps'
+                    sh 'kubectl get svc -n webapps'
+                }  
+                // withKubeConfig(caCertificate: '', clusterName: 'devopsshack-cluster', contextName: '', credentialsId: 'k8-token', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://41BFF322BA9DC0AC6E2B601200EBB29D.gr7.ap-south-1.eks.amazonaws.com') {
+                //     sh 'kubectl get pods -n webapps'
+                //     sh 'kubectl get svc -n webapps'
+                // }
+            }
+        }
     }
 }
