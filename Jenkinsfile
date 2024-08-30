@@ -84,8 +84,8 @@ pipeline {
 
         stage('Trivy-image-scan'){
             steps {
-                // sh 'trivy image mohammadrafi44/ekart:latest > trivy-report.txt'
-                sh 'trivy image --format table -o image.html mohammadrafi44/ekart:latest'
+                sh 'trivy image mohammadrafi44/ekart:latest > trivy-report.txt'
+                // sh 'trivy image --format table -o image.html mohammadrafi44/ekart:latest'
                 }
         }
 
